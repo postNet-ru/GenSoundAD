@@ -1,0 +1,12 @@
+# Placeholder для ffmpeg (Linux)
+# 
+# Скачайте ffmpeg с https://ffmpeg.org/download.html#build-linux
+# и поместите его в эту папку
+#
+# Инструкции:
+# 1. Ubuntu/Debian: apt install ffmpeg, затем скопируйте /usr/bin/ffmpeg сюда
+# 2. CentOS/RHEL: yum install ffmpeg, затем скопируйте /usr/bin/ffmpeg сюда
+# 3. Или скачайте статическую сборку с https://johnvansickle.com/ffmpeg/
+# 4. Убедитесь что файл имеет права на выполнение: chmod +x ffmpeg
+
+echo "FFmpeg для Linux не установлен. См. инструкции выше."

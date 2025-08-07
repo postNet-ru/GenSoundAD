@@ -1,0 +1,13 @@
+# Placeholder для ffmpeg.exe
+# 
+# Скачайте ffmpeg.exe с https://ffmpeg.org/download.html#build-windows
+# и поместите его в эту папку вместо этого файла
+#
+# Инструкции:
+# 1. Перейдите на https://www.gyan.dev/ffmpeg/builds/
+# 2. Скачайте "release builds" -> "ffmpeg-release-essentials.zip"
+# 3. Извлеките ffmpeg.exe из папки bin/ 
+# 4. Поместите ffmpeg.exe в эту папку (src-tauri/binaries/windows/)
+# 5. Удалите этот файл-заглушку
+
+echo "FFmpeg для Windows не установлен. См. инструкции выше."

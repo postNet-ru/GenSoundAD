@@ -1,0 +1,55 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "GenSoundAD",
+  "version": "0.0.8",
+  "identifier": "com.noradrenalin.gensoundad",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "GenSoundAD",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "minWidth": 800,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": ["binaries/*"],
+    "copyright": "© 2025 Noradrenalin Team",
+    "category": "Utility",
+    "shortDescription": "Генератор аудио контента с рекламными вставками",
+    "longDescription": "Инструмент для создания многочасовых аудиоплейлистов с автоматическим размещением рекламы и джинглов. Поддерживает различные аудиоформаты и экспорт в высоком качестве."
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/postNet-ru/GenSoundAD/releases/latest/download/update.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFBMDUyMUI0OTAxODUxMTUKUldRVlVSaVF0Q0VGR3ZYdFEyRllVUDBaaEt4dXNScGl1dzVyZ3cvTGxrRklCWHdZY2hka2xCNWwK"
+    }
+  }
+}

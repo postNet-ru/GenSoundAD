@@ -1,0 +1,317 @@
+{
+  "arrangements": {
+    "monday": [
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:00:00.000Z",
+          "end": "2025-08-11T08:00:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-1-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:00:16.000Z",
+          "end": "2025-08-11T08:02:00.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-54f6b1232d10",
+        "loudness": 100,
+        "id": "monday-hymn",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:40:00.000Z",
+          "end": "2025-08-11T08:40:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-1-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:50:00.000Z",
+          "end": "2025-08-11T08:50:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-2-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T09:30:00.000Z",
+          "end": "2025-08-11T09:30:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-2-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T09:40:00.000Z",
+          "end": "2025-08-11T09:40:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-3-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T10:20:00.000Z",
+          "end": "2025-08-11T10:20:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-3-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T10:30:00.000Z",
+          "end": "2025-08-11T10:30:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-4-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T11:10:00.000Z",
+          "end": "2025-08-11T11:10:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-4-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T11:20:00.000Z",
+          "end": "2025-08-11T11:20:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-5-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T12:00:00.000Z",
+          "end": "2025-08-11T12:00:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-5-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T12:10:00.000Z",
+          "end": "2025-08-11T12:10:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-6-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T12:50:00.000Z",
+          "end": "2025-08-11T12:50:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-6-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T13:00:00.000Z",
+          "end": "2025-08-11T13:00:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "monday-lesson-7-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T13:40:00.000Z",
+          "end": "2025-08-11T13:40:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "monday-lesson-7-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      }
+    ],
+    "weekdays": [
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:00:00.000Z",
+          "end": "2025-08-11T08:00:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "weekdays-lesson-1-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:40:00.000Z",
+          "end": "2025-08-11T08:40:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "weekdays-lesson-1-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      }
+    ],
+    "saturday": [
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:00:00.000Z",
+          "end": "2025-08-11T08:00:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+        "loudness": 100,
+        "id": "saturday-lesson-1-start",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      },
+      {
+        "playingTime": {
+          "start": "2025-08-11T08:30:00.000Z",
+          "end": "2025-08-11T08:30:15.000Z"
+        },
+        "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+        "loudness": 100,
+        "id": "saturday-lesson-1-end",
+        "fadeIn": true,
+        "fadeOut": true,
+        "fixedTime": "start"
+      }
+    ]
+  },
+  "adTypes": [
+    {
+      "value": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+      "content": "Звонок на урок"
+    },
+    {
+      "value": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+      "content": "Звонок с урока"
+    },
+    {
+      "value": "01987ba5-8f9a-720e-a0cf-54f6b1232d10",
+      "content": "Гимн"
+    }
+  ],
+  "sources": [
+    {
+      "file": {},
+      "title": "Pushnoy-ru_LEOPOLDIUM.mp3",
+      "typeId": "01987ba5-8f9a-720e-a0cf-4cd51a50b4a5",
+      "id": "01987ba5-b509-75d9-a2b5-9680e116786b",
+      "cut": {
+        "start": 0,
+        "end": 151.515542
+      }
+    },
+    {
+      "file": {},
+      "title": "Pushnoy-ru_PushME.mp3",
+      "typeId": "01987ba5-8f9a-720e-a0cf-54f6b1232d10",
+      "id": "01987ba7-7aae-7469-818f-9771dd796d8f",
+      "cut": {
+        "start": 0,
+        "end": 89.08395
+      }
+    },
+    {
+      "file": {},
+      "title": "SiSK!_4.00.mp3",
+      "typeId": "01987ba5-8f9a-720e-a0cf-5354202a514b",
+      "id": "01987ba7-9d65-760b-9a3b-dcb046b1b8b7",
+      "cut": {
+        "start": 61,
+        "end": 179.1152
+      }
+    }
+  ],
+  "tabs": [
+    {
+      "title": "Понедельник",
+      "id": "monday"
+    },
+    {
+      "title": "Будни",
+      "id": "weekdays"
+    },
+    {
+      "title": "Суббота",
+      "id": "saturday"
+    }
+  ],
+  "tabsSync": {
+    "monday": "monday",
+    "weekdays": "weekdays",
+    "saturday": "saturday"
+  },
+  "timeOfRecords": {
+    "monday": {
+      "start": "2025-08-11T03:00:00.000Z",
+      "end": "2025-08-11T08:00:00.000Z"
+    },
+    "weekdays": {
+      "start": "2025-08-11T03:00:00.000Z",
+      "end": "2025-08-11T08:00:00.000Z"
+    },
+    "saturday": {
+      "start": "2025-08-11T03:00:00.000Z",
+      "end": "2025-08-11T08:00:00.000Z"
+    }
+  }
+}

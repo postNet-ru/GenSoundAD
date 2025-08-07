@@ -1,0 +1,145 @@
+name: Development Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build for'
+        required: true
+        default: 'ubuntu-latest'
+        type: choice
+        options:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+jobs:
+  dev-build:
+    runs-on: ${{ github.event.inputs.platform }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-dev-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-dev-
+            ${{ runner.os }}-cargo-
+
+      - name: Cache FFmpeg binaries
+        uses: actions/cache@v4
+        with:
+          path: src-tauri/binaries/
+          key: ffmpeg-binaries-dev-${{ runner.os }}-v1
+          restore-keys: |
+            ffmpeg-binaries-dev-${{ runner.os }}-
+            ffmpeg-binaries-${{ runner.os }}-
+
+      - name: Cache system dependencies (Ubuntu)
+        if: github.event.inputs.platform == 'ubuntu-latest'
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-dev-${{ hashFiles('**/.github/workflows/dev.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-dev-
+            ${{ runner.os }}-apt-
+
+      - name: Install dependencies (Ubuntu)
+        if: github.event.inputs.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Setup FFmpeg directories
+        shell: bash
+        run: |
+          mkdir -p src-tauri/binaries/windows
+          mkdir -p src-tauri/binaries/macos  
+          mkdir -p src-tauri/binaries/linux
+
+      - name: Download FFmpeg (Windows)
+        if: github.event.inputs.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          if (-not (Test-Path "src-tauri\binaries\windows\ffmpeg.exe")) {
+            Write-Host "FFmpeg not found in cache, downloading..."
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" -OutFile "ffmpeg-windows.zip"
+            Expand-Archive -Path "ffmpeg-windows.zip" -DestinationPath "." -Force
+            $ExtractedDir = Get-ChildItem -Directory | Where-Object { $_.Name -like "ffmpeg-master*" }
+            Copy-Item "$($ExtractedDir.FullName)\bin\ffmpeg.exe" "src-tauri\binaries\windows\"
+            Remove-Item "ffmpeg-windows.zip"
+            Remove-Item $ExtractedDir.FullName -Recurse
+            Write-Host "FFmpeg downloaded successfully"
+          } else {
+            Write-Host "FFmpeg found in cache, skipping download"
+          }
+
+      - name: Download FFmpeg (macOS)
+        if: github.event.inputs.platform == 'macos-latest'
+        run: |
+          if [ ! -f "src-tauri/binaries/macos/ffmpeg" ]; then
+            echo "FFmpeg not found in cache, downloading..."
+            brew install ffmpeg
+            cp "$(which ffmpeg)" "src-tauri/binaries/macos/"
+            chmod +x "src-tauri/binaries/macos/ffmpeg"
+            echo "FFmpeg downloaded successfully"
+          else
+            echo "FFmpeg found in cache, skipping download"
+          }
+
+      - name: Download FFmpeg (Linux)
+        if: github.event.inputs.platform == 'ubuntu-latest'
+        run: |
+          if [ ! -f "src-tauri/binaries/linux/ffmpeg" ]; then
+            echo "FFmpeg not found in cache, downloading..."
+            curl -L "https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz" -o ffmpeg-linux.tar.xz
+            tar -xf ffmpeg-linux.tar.xz
+            cp ffmpeg-git-*-amd64-static/ffmpeg "src-tauri/binaries/linux/"
+            chmod +x "src-tauri/binaries/linux/ffmpeg"
+            rm -rf ffmpeg-linux.tar.xz ffmpeg-git-*-amd64-static
+            echo "FFmpeg downloaded successfully"
+          else
+            echo "FFmpeg found in cache, skipping download"
+          fi
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build Tauri app (Debug)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          includeDebug: true
+          includeRelease: false
+
+      - name: Upload dev artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gensoundad-dev-${{ github.event.inputs.platform }}
+          path: |
+            src-tauri/target/debug/bundle/**/*
+          retention-days: 7

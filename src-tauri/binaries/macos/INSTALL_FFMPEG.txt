@@ -1,0 +1,13 @@
+# Placeholder для ffmpeg (macOS)
+# 
+# Скачайте ffmpeg с https://ffmpeg.org/download.html#build-mac
+# и поместите его в эту папку
+#
+# Инструкции:
+# 1. Установите Homebrew: https://brew.sh
+# 2. Выполните: brew install ffmpeg
+# 3. Скопируйте /opt/homebrew/bin/ffmpeg (Apple Silicon) или /usr/local/bin/ffmpeg (Intel) сюда
+# 4. Или скачайте с https://evermeet.cx/ffmpeg/
+# 5. Убедитесь что файл имеет права на выполнение: chmod +x ffmpeg
+
+echo "FFmpeg для macOS не установлен. См. инструкции выше."

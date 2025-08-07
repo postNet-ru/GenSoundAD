@@ -1,0 +1,349 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.1)'
+        required: true
+        default: '0.0.0'
+      create_tag:
+        description: 'Create git tag'
+        required: true
+        default: true
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update-version:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+      tag: ${{ steps.set_version.outputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set version
+        id: set_version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          TAG="v${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ steps.set_version.outputs.version }} --no-git-tag-version
+
+      - name: Update Cargo.toml version
+        run: |
+          sed -i 's/^version = ".*"/version = "${{ steps.set_version.outputs.version }}"/' src-tauri/Cargo.toml
+
+      - name: Update tauri.conf.json version
+        run: |
+          sed -i 's/"version": ".*"/"version": "${{ steps.set_version.outputs.version }}"/' src-tauri/tauri.conf.json
+
+      - name: Commit version changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json
+          git commit -m "Bump version to ${{ steps.set_version.outputs.version }}" || exit 0
+
+      - name: Create and push tag
+        if: github.event.inputs.create_tag == 'true'
+        run: |
+          git tag ${{ steps.set_version.outputs.tag }}
+          git push origin ${{ steps.set_version.outputs.tag }}
+          git push origin HEAD:${{ github.ref_name }}
+
+  build:
+    needs: [update-version]
+    if: always() && (needs.update-version.result == 'success' || github.event_name == 'push')
+    strategy:
+      fail-fast: false
+      max-parallel: 4  # Ограничиваем параллельность для экономии ресурсов
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            rust-target: 'aarch64-apple-darwin'
+            arch: 'arm64'
+          - platform: 'macos-13'
+            args: '--target x86_64-apple-darwin'
+            rust-target: 'x86_64-apple-darwin'
+            arch: 'x64'
+          - platform: 'ubuntu-latest'
+            args: '--target x86_64-unknown-linux-gnu'
+            rust-target: 'x86_64-unknown-linux-gnu'
+            arch: 'x64'
+          - platform: 'windows-latest'
+            args: '--target x86_64-pc-windows-msvc'
+            rust-target: 'x86_64-pc-windows-msvc'
+            arch: 'x64'
+
+    runs-on: ${{ matrix.platform }}
+    
+    env:
+      # Ускоряем сборку Rust
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: 0
+      RUST_BACKTRACE: 1
+      # Используем максимум CPU для компиляции
+      CARGO_BUILD_JOBS: 0
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: Cache Tauri CLI
+        id: cache-tauri-cli
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri
+          key: ${{ runner.os }}-${{ matrix.arch }}-tauri-cli-2.7
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-tauri-cli-
+            ${{ runner.os }}-tauri-cli-
+
+      - name: Install Tauri CLI
+        if: steps.cache-tauri-cli.outputs.cache-hit != 'true'
+        run: |
+          # Устанавливаем совместимую версию Tauri CLI
+          cargo install tauri-cli --version "~2.7" --locked
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
+            ${{ runner.os }}-cargo-
+
+      - name: Cache frontend build
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: ${{ runner.os }}-frontend-${{ hashFiles('src/**/*', 'index.html', 'vite.config.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+
+      - name: Cache frontend node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache FFmpeg binaries
+        uses: actions/cache@v4
+        with:
+          path: src-tauri/binaries/
+          key: ffmpeg-binaries-${{ runner.os }}-${{ matrix.arch }}-v2
+          restore-keys: |
+            ffmpeg-binaries-${{ runner.os }}-${{ matrix.arch }}-
+            ffmpeg-binaries-${{ runner.os }}-
+
+      - name: Cache system dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-latest'
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/cache/apt
+            /var/lib/apt
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/.github/workflows/release.yml') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          # Быстрая установка без лишних обновлений
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Install dependencies (macOS)
+        if: startsWith(matrix.platform, 'macos')
+        run: |
+          # Обновляем Homebrew только если это необходимо
+          brew update || true
+          # Убеждаемся, что Rust установлен с нужной архитектурой
+          rustup target add ${{ matrix.rust-target }}
+
+      - name: Install Node dependencies
+        run: |
+          # Используем npm ci --prefer-offline для ускорения
+          npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Setup FFmpeg directories
+        shell: bash
+        run: |
+          mkdir -p src-tauri/binaries/windows
+          mkdir -p src-tauri/binaries/macos  
+          mkdir -p src-tauri/binaries/linux
+
+      - name: Download FFmpeg (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          if (-not (Test-Path "src-tauri\binaries\windows\ffmpeg.exe")) {
+            Write-Host "FFmpeg not found in cache, downloading..."
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" -OutFile "ffmpeg-windows.zip"
+            Expand-Archive -Path "ffmpeg-windows.zip" -DestinationPath "." -Force
+            $ExtractedDir = Get-ChildItem -Directory | Where-Object { $_.Name -like "ffmpeg-master*" }
+            Copy-Item "$($ExtractedDir.FullName)\bin\ffmpeg.exe" "src-tauri\binaries\windows\"
+            Remove-Item "ffmpeg-windows.zip"
+            Remove-Item $ExtractedDir.FullName -Recurse
+            Write-Host "FFmpeg downloaded successfully"
+          } else {
+            Write-Host "FFmpeg found in cache, skipping download"
+          }
+
+      - name: Download FFmpeg (macOS)
+        if: startsWith(matrix.platform, 'macos')
+        run: |
+          if [ ! -f "src-tauri/binaries/macos/ffmpeg" ]; then
+            echo "FFmpeg not found in cache, downloading..."
+            
+            # Сначала пробуем быструю установку из pre-compiled бинарника
+            if [ "${{ matrix.arch }}" = "arm64" ]; then
+              echo "Downloading FFmpeg for Apple Silicon (ARM64)"
+              curl -L "https://evermeet.cx/ffmpeg/getrelease/zip" -o ffmpeg-macos.zip
+              unzip -q ffmpeg-macos.zip
+              cp ffmpeg "src-tauri/binaries/macos/"
+              rm ffmpeg-macos.zip ffmpeg
+            else
+              echo "Downloading FFmpeg for Intel (x86_64)"  
+              curl -L "https://evermeet.cx/ffmpeg/getrelease/zip" -o ffmpeg-macos.zip
+              unzip -q ffmpeg-macos.zip
+              cp ffmpeg "src-tauri/binaries/macos/"
+              rm ffmpeg-macos.zip ffmpeg
+            fi
+            
+            chmod +x "src-tauri/binaries/macos/ffmpeg"
+            echo "FFmpeg downloaded successfully"
+          else
+            echo "FFmpeg found in cache, skipping download"
+          fi
+
+      - name: Download FFmpeg (Linux)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          if [ ! -f "src-tauri/binaries/linux/ffmpeg" ]; then
+            echo "FFmpeg not found in cache, downloading..."
+            curl -L "https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz" -o ffmpeg-linux.tar.xz
+            tar -xf ffmpeg-linux.tar.xz
+            cp ffmpeg-git-*-amd64-static/ffmpeg "src-tauri/binaries/linux/"
+            chmod +x "src-tauri/binaries/linux/ffmpeg"
+            rm -rf ffmpeg-linux.tar.xz ffmpeg-git-*-amd64-static
+            echo "FFmpeg downloaded successfully"
+          else
+            echo "FFmpeg found in cache, skipping download"
+          fi
+
+      - name: Build frontend
+        run: |
+          # Быстрая сборка без TypeScript проверок (они уже прошли в dev)
+          npm run build:fast
+
+      - name: Pre-build Rust dependencies
+        run: |
+          # Предварительная сборка только зависимостей для ускорения основной сборки
+          cd src-tauri
+          cargo fetch --target ${{ matrix.rust-target }}
+          # Компилируем только зависимости с правильным именем пакета
+          cargo build --release --target ${{ matrix.rust-target }} || true
+
+      - name: Verify build setup
+        run: |
+          echo "=== Build Environment Check ==="
+          echo "Frontend build exists:" && test -d dist && echo "✅ YES" || echo "❌ NO"
+          echo "FFmpeg binary exists:"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            test -f src-tauri/binaries/windows/ffmpeg.exe && echo "✅ YES" || echo "❌ NO"
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            test -f src-tauri/binaries/macos/ffmpeg && echo "✅ YES" || echo "❌ NO"
+          else
+            test -f src-tauri/binaries/linux/ffmpeg && echo "✅ YES" || echo "❌ NO"
+          fi
+          echo "Tauri CLI available:" && cargo tauri --version && echo "✅ YES" || echo "❌ NO"
+          echo "Rust target available:" && rustup target list --installed | grep ${{ matrix.rust-target }} && echo "✅ YES" || echo "❌ NO"
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ needs.update-version.outputs.tag || github.ref_name }}
+          releaseName: 'GenSoundAD ${{ needs.update-version.outputs.version || github.ref_name }}'
+          releaseBody: |
+            🎵 GenSoundAD - Генератор аудио контента с рекламными вставками
+            
+            ## Новые возможности:
+            - ✅ Создание многочасовых аудиоплейлистов (до 8+ часов)
+            - ✅ Автоматическое размещение рекламы и джинглов по времени
+            - ✅ Поддержка различных аудиоформатов (MP3, WAV, OGG, FLAC, M4A, AAC)
+            - ✅ Экспорт в высоком качестве до 320 kbps
+            - ✅ Кроссплатформенность
+            - ✅ Автоматические обновления
+            
+            ## Системные требования:
+            - Windows 10+ / macOS 10.15+ / Ubuntu 18.04+
+            - 4 ГБ оперативной памяти
+            - 200 МБ свободного места на диске
+            
+            **Примечание:** FFmpeg включен в сборку, дополнительная установка не требуется.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gensoundad-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            src-tauri/target/*/release/bundle/**/*.exe
+            src-tauri/target/*/release/bundle/**/*.msi  
+            src-tauri/target/*/release/bundle/**/*.deb
+            src-tauri/target/*/release/bundle/**/*.dmg
+            src-tauri/target/*/release/bundle/**/*.app.tar.gz
