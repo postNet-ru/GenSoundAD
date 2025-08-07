@@ -288,20 +288,20 @@ jobs:
           # Компилируем только зависимости с правильным именем пакета
           cargo build --release --target ${{ matrix.rust-target }} || true
 
-      - name: Verify build setup
-        run: |
-          echo "=== Build Environment Check ==="
-          echo "Frontend build exists:" && test -d dist && echo "✅ YES" || echo "❌ NO"
-          echo "FFmpeg binary exists:"
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            test -f src-tauri/binaries/windows/ffmpeg.exe && echo "✅ YES" || echo "❌ NO"
-          elif [ "${{ runner.os }}" = "macOS" ]; then
-            test -f src-tauri/binaries/macos/ffmpeg && echo "✅ YES" || echo "❌ NO"
-          else
-            test -f src-tauri/binaries/linux/ffmpeg && echo "✅ YES" || echo "❌ NO"
-          fi
-          echo "Tauri CLI available:" && cargo tauri --version && echo "✅ YES" || echo "❌ NO"
-          echo "Rust target available:" && rustup target list --installed | grep ${{ matrix.rust-target }} && echo "✅ YES" || echo "❌ NO"
+      # - name: Verify build setup
+      #   run: |
+      #     echo "=== Build Environment Check ==="
+      #     echo "Frontend build exists:" && test -d dist && echo "✅ YES" || echo "❌ NO"
+      #     echo "FFmpeg binary exists:"
+      #     if [ "${{ runner.os }}" = "Windows" ]; then
+      #       test -f src-tauri/binaries/windows/ffmpeg.exe && echo "✅ YES" || echo "❌ NO"
+      #     elif [ "${{ runner.os }}" = "macOS" ]; then
+      #       test -f src-tauri/binaries/macos/ffmpeg && echo "✅ YES" || echo "❌ NO"
+      #     else
+      #       test -f src-tauri/binaries/linux/ffmpeg && echo "✅ YES" || echo "❌ NO"
+      #     fi
+      #     echo "Tauri CLI available:" && cargo tauri --version && echo "✅ YES" || echo "❌ NO"
+      #     echo "Rust target available:" && rustup target list --installed | grep ${{ matrix.rust-target }} && echo "✅ YES" || echo "❌ NO"
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0.5
