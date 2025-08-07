@@ -10,7 +10,7 @@ const Header = () => {
       alignItems={"center"}
     >
       <Icon data={VolumeFill} size={25} />
-      <Text variant="header-2">Генератор звуковых объявлений</Text>
+      <Text variant="header-2">Генератор звуковых объявлений (Beta)</Text>
     </Flex>
   );
 };
