@@ -81,14 +81,14 @@ jobs:
             args: '--target aarch64-apple-darwin'
             rust-target: 'aarch64-apple-darwin'
             arch: 'arm64'
-          - platform: 'macos-13'
-            args: '--target x86_64-apple-darwin'
-            rust-target: 'x86_64-apple-darwin'
-            arch: 'x64'
-          - platform: 'ubuntu-latest'
-            args: '--target x86_64-unknown-linux-gnu'
-            rust-target: 'x86_64-unknown-linux-gnu'
-            arch: 'x64'
+          # - platform: 'macos-13'
+          #   args: '--target x86_64-apple-darwin'
+          #   rust-target: 'x86_64-apple-darwin'
+          #   arch: 'x64'
+          # - platform: 'ubuntu-latest'
+          #   args: '--target x86_64-unknown-linux-gnu'
+          #   rust-target: 'x86_64-unknown-linux-gnu'
+          #   arch: 'x64'
           - platform: 'windows-latest'
             args: '--target x86_64-pc-windows-msvc'
             rust-target: 'x86_64-pc-windows-msvc'
@@ -101,8 +101,6 @@ jobs:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: 0
       RUST_BACKTRACE: 1
-      # Используем максимум CPU для компиляции
-      CARGO_BUILD_JOBS: 0
     
     steps:
       - name: Checkout repository
@@ -125,7 +123,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo/bin/cargo-tauri
-          key: ${{ runner.os }}-${{ matrix.arch }}-tauri-cli-2.7
+          key: ${{ runner.os }}-${{ matrix.arch }}-tauri-cli-latest
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-tauri-cli-
             ${{ runner.os }}-tauri-cli-
@@ -133,8 +131,8 @@ jobs:
       - name: Install Tauri CLI
         if: steps.cache-tauri-cli.outputs.cache-hit != 'true'
         run: |
-          # Устанавливаем совместимую версию Tauri CLI
-          cargo install tauri-cli --version "~2.7" --locked
+          # Устанавливаем последнюю стабильную версию Tauri CLI v2
+          cargo install tauri-cli --locked
 
       - name: Cache Rust dependencies
         uses: actions/cache@v4
