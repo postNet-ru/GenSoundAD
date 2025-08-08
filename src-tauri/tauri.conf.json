@@ -46,7 +46,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://github.com/postNet-ru/GenSoundAD/releases/latest/download/update.json"
+        "https://github.com/postNet-ru/GenSoundAD/releases/latest/download/latest.json"
       ],
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFBMDUyMUI0OTAxODUxMTUKUldRVlVSaVF0Q0VGR3ZYdFEyRllVUDBaaEt4dXNScGl1dzVyZ3cvTGxrRklCWHdZY2hka2xCNWwK"
