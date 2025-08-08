@@ -247,16 +247,24 @@ fn export_samples_with_ffmpeg(
         .stdin
         .take()
         .ok_or_else(|| anyhow::anyhow!("Нет stdin у FFmpeg"))?;
-    let chunk_size = 44100;
-    let total = samples.len().div_ceil(chunk_size);
+
+    // ОПТИМИЗАЦИЯ: записываем большими чанками вместо по одному сэмплу
+    let chunk_size = 44100 * 4; // 4 секунды за раз
+    let total_chunks = samples.len().div_ceil(chunk_size);
 
     for (i, chunk) in samples.chunks(chunk_size).enumerate() {
-        for &s in chunk {
-            stdin
-                .write_all(&s.to_le_bytes())
-                .map_err(|e| anyhow::anyhow!("Ошибка записи: {}", e))?;
+        // Собираем все сэмплы чанка в один буфер
+        let mut buffer = Vec::with_capacity(chunk.len() * 4); // 4 байта на float32
+        for &sample in chunk {
+            buffer.extend_from_slice(&sample.to_le_bytes());
         }
-        let prog = 80.0 + (i as f32 / total as f32) * 15.0;
+
+        // Записываем весь буфер за один вызов
+        stdin
+            .write_all(&buffer)
+            .map_err(|e| anyhow::anyhow!("Ошибка записи чанка: {}", e))?;
+
+        let prog = 80.0 + (i as f32 / total_chunks as f32) * 15.0;
         let _ = app_handle.emit(
             "export_progress",
             &ExportProgress {

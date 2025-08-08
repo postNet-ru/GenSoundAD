@@ -105,6 +105,49 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # ВАЖНО: Получаем самый свежий код после бампа версии
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+          
+      # Если workflow_dispatch, то нужно получить обновленный код
+      - name: Pull latest changes (for workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git pull origin ${{ github.ref_name }}
+          
+      # Проверяем, что версия в файлах соответствует ожидаемой
+      - name: Verify version after checkout
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Expected version: ${{ needs.update-version.outputs.version }}"
+          echo "Version in package.json:"
+          grep '"version"' package.json
+          echo "Version in tauri.conf.json:"
+          grep '"version"' src-tauri/tauri.conf.json
+          echo "Version in Cargo.toml:"
+          grep '^version' src-tauri/Cargo.toml
+          
+      # Принудительно устанавливаем правильную версию, если она не совпадает
+      - name: Force correct version (fallback)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          EXPECTED_VERSION="${{ needs.update-version.outputs.version }}"
+          echo "Ensuring version is set to: $EXPECTED_VERSION"
+          
+          # Обновляем package.json
+          npm version $EXPECTED_VERSION --no-git-tag-version --allow-same-version
+          
+          # Обновляем Cargo.toml
+          sed -i 's/^version = ".*"/version = "'$EXPECTED_VERSION'"/' src-tauri/Cargo.toml
+          
+          # Обновляем tauri.conf.json  
+          sed -i 's/"version": ".*"/"version": "'$EXPECTED_VERSION'"/' src-tauri/tauri.conf.json
+          
+          echo "Version update completed. Final verification:"
+          grep '"version"' package.json
+          grep '"version"' src-tauri/tauri.conf.json
+          grep '^version' src-tauri/Cargo.toml
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -404,6 +447,8 @@ jobs:
           TAURI_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_PRIVATE_KEY_PASSWORD }}
+          # Передаем версию напрямую
+          TAURI_APP_VERSION: ${{ needs.update-version.outputs.version || github.ref_name }}
         with:
           tagName: ${{ needs.update-version.outputs.tag || github.ref_name }}
           releaseName: 'GenSoundAD ${{ needs.update-version.outputs.version || github.ref_name }}'

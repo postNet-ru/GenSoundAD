@@ -51,27 +51,23 @@ impl AudioProcessor {
         // Получаем информацию о частоте дискретизации
         let source_sample_rate = track.codec_params.sample_rate.unwrap_or(44100);
         let needs_resampling = source_sample_rate != self.sample_rate;
-        log::info!(
-            "Декодирование файла {}: {} Hz -> {} Hz (ресемплинг: {})",
-            file_path,
-            source_sample_rate,
-            self.sample_rate,
-            needs_resampling
-        );
-
-        let track_id = track.id;
-
-        // Получаем информацию о частоте дискретизации исходного файла
-        let source_sample_rate = track.codec_params.sample_rate.unwrap_or(44100);
-        let needs_resampling = source_sample_rate != self.sample_rate;
 
         if needs_resampling {
             log::info!(
-                "Исходная частота {} Hz, целевая {} Hz - требуется ресемплинг",
+                "Декодирование файла {}: {} Hz -> {} Hz (ресемплинг требуется)",
+                file_path,
                 source_sample_rate,
                 self.sample_rate
             );
+        } else {
+            log::info!(
+                "Декодирование файла {}: {} Hz (ресемплинг не требуется)",
+                file_path,
+                source_sample_rate
+            );
         }
+
+        let track_id = track.id;
 
         let mut decoder = symphonia::default::get_codecs()
             .make(&track.codec_params, &decoder_opts)
@@ -179,10 +175,10 @@ impl AudioProcessor {
         }
 
         let resampler_params = SincInterpolationParameters {
-            sinc_len: 256,
+            sinc_len: 64, // Уменьшаем с 256 до 64 для скорости (все еще хорошее качество)
             f_cutoff: 0.95,
             interpolation: SincInterpolationType::Linear,
-            oversampling_factor: 256,
+            oversampling_factor: 128, // Уменьшаем с 256 до 128 для скорости
             window: WindowFunction::BlackmanHarris2,
         };
 
