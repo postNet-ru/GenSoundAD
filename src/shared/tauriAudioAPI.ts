@@ -3,7 +3,41 @@ import { Arrangements, TimeOfRecords, Source, ExportSettings } from '../app/cont
 
 // Утилитарная функция для безопасной проверки Tauri
 function checkTauriAvailability(): boolean {
-  return typeof window !== 'undefined' && !!(window as typeof window & { __TAURI__?: unknown }).__TAURI__;
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  // Проверяем различные способы определения Tauri среды
+  const checks = [
+    // Tauri v2 - основные объекты
+    () => !!(window as any).__TAURI_INTERNALS__,
+    () => !!(window as any).__TAURI_METADATA__,
+    () => !!(window as any).__TAURI_IPC__,
+    
+    // Tauri v1/v2 - классический объект
+    () => !!(window as any).__TAURI__,
+    
+    // User Agent проверка (используется в некоторых сборках)
+    () => navigator.userAgent.includes('tauri'),
+    () => navigator.userAgent.includes('Tauri'),
+    
+    // Проверка через document title или другие индикаторы
+    () => document.title.includes('tauri') || document.title.includes('Tauri'),
+    
+    // Проверка наличия специфичных для Tauri переменных окружения
+    () => !!(window as any).Tauri,
+    () => !!(window as any).__TAURI_PLUGIN_WINDOW__,
+    () => !!(window as any).__TAURI_PLUGIN_SHELL__,
+  ];
+  
+  // Возвращаем true если хотя бы одна проверка прошла
+  return checks.some(check => {
+    try {
+      return check();
+    } catch {
+      return false;
+    }
+  });
 }
 
 // Tип источника для Tauri (без Blob, с путем к файлу)
@@ -206,6 +240,45 @@ export class TauriAudioAPI {
     }
   }
 
+  // Расширенная проверка доступности с дополнительными методами
+  static async isAvailableExtended(): Promise<boolean> {
+    // Сначала базовая проверка
+    if (checkTauriAvailability()) {
+      return true;
+    }
+    
+    // Пробуем импортировать Tauri API
+    try {
+      await import('@tauri-apps/api/core');
+      return true;
+    } catch {
+      console.log('Tauri API import failed');
+    }
+    
+    // Проверяем через попытку использования глобальных объектов
+    try {
+      if (typeof window !== 'undefined') {
+        const tauriObjects = [
+          '__TAURI__',
+          '__TAURI_INTERNALS__', 
+          '__TAURI_METADATA__',
+          '__TAURI_IPC__'
+        ];
+        
+        for (const obj of tauriObjects) {
+          if ((window as any)[obj]) {
+            console.log(`Found Tauri object: ${obj}`);
+            return true;
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Extended Tauri check failed:', error);
+    }
+    
+    return false;
+  }
+
   // Асинхронная проверка доступности через тестовый вызов
   static async testAvailability(): Promise<boolean> {
     try {
@@ -214,9 +287,11 @@ export class TauriAudioAPI {
       }
 
       const { invoke } = await import('@tauri-apps/api/core');
-      await invoke('select_output_directory');
+      // Используем простую команду для проверки без UI
+      await invoke('test_tauri_availability');
       return true;
-    } catch {
+    } catch (error) {
+      console.log('Tauri test availability failed:', error);
       return false;
     }
   }

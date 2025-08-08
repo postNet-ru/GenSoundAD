@@ -29,14 +29,38 @@ const SaveButton = () => {
   // Проверяем доступность Tauri при загрузке компонента
   useEffect(() => {
     const checkTauri = async () => {
+      console.log('=== Tauri Availability Check ===');
+      console.log('Window object exists:', typeof window !== 'undefined');
+      console.log('Navigator userAgent:', navigator.userAgent);
+      console.log('Window.__TAURI__:', !!(window as any).__TAURI__);
+      console.log('Window.__TAURI_INTERNALS__:', !!(window as any).__TAURI_INTERNALS__);
+      console.log('Window.__TAURI_METADATA__:', !!(window as any).__TAURI_METADATA__);
+      
       const basicCheck = TauriAudioAPI.isAvailable();
       console.log('Basic Tauri check:', basicCheck);
       
-      if (basicCheck) {
-        const asyncCheck = await TauriAudioAPI.testAvailability();
-        console.log('Async Tauri check:', asyncCheck);
-        setIsTauriAvailable(asyncCheck);
+      const extendedCheck = await TauriAudioAPI.isAvailableExtended();
+      console.log('Extended Tauri check:', extendedCheck);
+      
+      if (basicCheck || extendedCheck) {
+        try {
+          const asyncCheck = await TauriAudioAPI.testAvailability();
+          console.log('Async Tauri check:', asyncCheck);
+          setIsTauriAvailable(asyncCheck);
+          
+          if (asyncCheck) {
+            // Дополнительно проверим FFmpeg
+            const ffmpegCheck = await TauriAudioAPI.checkFFmpegAvailability();
+            console.log('FFmpeg check:', ffmpegCheck);
+          }
+        } catch (error) {
+          console.log('Async check failed:', error);
+          // Если асинхронная проверка не удалась, но базовая/расширенная сработала
+          // возможно Tauri доступен, но команда не работает
+          setIsTauriAvailable(basicCheck || extendedCheck);
+        }
       } else {
+        console.log('All checks failed, setting isTauriAvailable to false');
         setIsTauriAvailable(false);
       }
     };

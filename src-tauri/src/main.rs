@@ -319,6 +319,11 @@ async fn check_ffmpeg_availability(app_handle: tauri::AppHandle) -> Result<Strin
         .map_err(|e| e)
 }
 
+#[tauri::command]
+async fn test_tauri_availability() -> Result<String, String> {
+    Ok("Tauri API доступен".to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().build())
@@ -328,7 +333,8 @@ fn main() {
             select_output_directory,
             select_audio_files,
             save_temp_file,
-            check_ffmpeg_availability
+            check_ffmpeg_availability,
+            test_tauri_availability
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
