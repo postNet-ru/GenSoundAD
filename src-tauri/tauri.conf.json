@@ -29,9 +29,7 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": true,
-    "resources": [
-      "binaries/**/*"
-    ],
+    "resources": ["binaries/**/*"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -39,7 +37,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["binaries/*"],
     "copyright": "© 2025 Noradrenalin Team",
     "category": "Utility",
     "shortDescription": "Генератор аудио контента с рекламными вставками",
