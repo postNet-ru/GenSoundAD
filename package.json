@@ -1,7 +1,7 @@
 {
   "name": "gensoundad",
   "private": true,
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Генератор аудио контента с рекламными вставками - профессиональный инструмент для создания многочасовых плейлистов",
   "author": "Noradrenalin Team <dev@noradrenalin.team>",
   "license": "MIT",
